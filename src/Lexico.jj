@@ -20,38 +20,102 @@ public class Lexico {
 
 PARSER_END(Lexico)
 
-// ** Tokens básicos: letras e dígitos **
+
+// OPERADORES RELACIONAIS
 TOKEN: {
-  < LETTER: ["a"-"z", "A"-"Z"] >  // Letras
+  < EQ: "==" >     
+  | < EQ_STRICT: "===" >   
+  | < NEQ: "!=" >  
+  | < NEQ_STRICT: "!==">  
+  | < LT: "<" >     
+  | < GT: ">" >     
+  | < LE: "<=" >    
+  | < GE: ">=" >    
 }
 
+// OPERADORES ARITMETICOS
 TOKEN: {
-  < DIGIT: ["0"-"9"] >  // Dígitos
+  < PLUS: "+" >     
+  | < MINUS: "-" >  
+  | < TIMES: "*" >   
+  | < DIVIDE: "/" >  
+  | < MOD: "%" >    
 }
 
-// ** Tokens de palavras-chave e operadores **
+// OPERADORES BOOLEANOS
 TOKEN: {
-  < INT: "int" > |
-  < PLUS: "+" > |
-  < MINUS: "-" >|
-  < TIMES: "*" >|
-  < DIVIDE: "/"> |
-  < EQUAL: "="> |
-  < SEMICOLON: ";"> |
-  < LPAREN: "(" >|
-  < RPAREN: ")">
+  < AND: "&&" >   
+  | < OR: "||" >
+  | < NOT: "!" >
 }
 
-// ** Tokens compostos: identificadores e números **
+// OPERADORES DE ATRIBUIÇÃO
 TOKEN: {
-  < IDENTIFIER: <LETTER> (<LETTER> | <DIGIT>)* >  // Identificadores (nomes de variáveis)
+  < ASSIGN: "=" >      
+  | < ADD_ASSIGN: "+=" > 
+  | < SUB_ASSIGN: "-=" > 
+  | < MUL_ASSIGN: "*=" >
+  | < DIV_ASSIGN: "/=" > 
+  | < MOD_ASSIGN: "%=" >
 }
 
+// TOKENS PARA UM LAÇO FOR
 TOKEN: {
-  < NUMBER: (<DIGIT>)+ >  // Números inteiros
+  < FOR: "for" >
+  | < LPAREN: "(" >
+  | < RPAREN: ")" >
+  | < SEMICOLON: ";" >
+  | < COMMA: "," >
 }
 
-// ** Ignorar espaços em branco **
+// TOKEN PARA O TIPO BÁSICO INTEIRO E REAL
+TOKEN: {
+  < NUMBER: (<DIGIT>)+ > 
+  | < REAL: (<DIGIT>)+ "." (<DIGIT>)+ >
+}
+
+// TOKEN PARA O TIPO BÁSICO STRING
+TOKEN: {
+  < STRING: "\"" (~["\""])* "\"" >
+  | < STRING_SINGLE: "'" (~["'"])* "'" > 
+}
+
+// LETRAS E NUMEROS
+TOKEN: {
+  < LETTER: ["a"-"z", "A"-"Z"] > |
+  < DIGIT: ["0"-"9"] > 
+}
+
+
+// DECLARAÇÃO DE FUNÇÕES
+TOKEN: {
+  < FUNCTION: "function" >
+  | < LBRACE: "{" >
+  | < RBRACE: "}" > 
+}
+
+
+// CHAMANDO FUNÇÕES
+TOKEN: {
+  < IDENTIFIER: <LETTER> (<LETTER> | <DIGIT>)* >
+}
+
+// ENTRADA E SAÍDA
+TOKEN: {
+  < CONSOLE_LOG: "console.log" >
+  | < PROMPT: "prompt" >
+  | < READLINE: "readline" >
+}
+
+
+// ESTRUTURA CONDICINAL SIMPLES E COMPOSTA
+TOKEN: {
+  < IF: "if" >
+  | < ELSE: "else" >
+}
+
+
+// IGNORA ESPAÇOS EM BRANCO
 SKIP: {
   < WHITESPACE: [" ", "\t", "\n", "\r"] >
 }
