@@ -1,0 +1,229 @@
+options {
+  JAVA_UNICODE_ESCAPE = true;  // Permite o uso de escape Unicode.
+}
+
+PARSER_BEGIN(Comp)  // Nome da classe do analisador léxico
+
+public class Comp {
+  public static void main(String[] args) throws ParseException {
+    String input = "int x = (10 + 20) - 5";  // Entrada de exemplo
+    Comp compiler = new Comp(new java.io.StringReader(input));
+    Token t = compiler.getNextToken();
+    while (t.kind != EOF) {
+      System.out.println("Token: " + t.image);
+      t = compiler.getNextToken();
+    }
+  }
+}
+
+PARSER_END(Comp)
+
+
+//=======================================================================
+//================================ TOKENS ===============================
+//=======================================================================
+
+// PALAVRAS RESERVADAS
+TOKEN: { < CONSOLE_LOG: "console.log" > }
+TOKEN: { < IF: "if" > }
+TOKEN: { < ELSE: "else" > }
+TOKEN: { < PROMPT: "prompt" > }
+TOKEN: { < READLINE: "readline" > }
+
+// OPERADORES RELACIONAIS
+TOKEN: {
+  < EQ: "==" >     
+  | < EQ_STRICT: "===" >   
+  | < NEQ: "!=" >  
+  | < NEQ_STRICT: "!==">  
+  | < LT: "<" >     
+  | < GT: ">" >     
+  | < LE: "<=" >    
+  | < GE: ">=" >    
+}
+
+// OPERADORES ARITMETICOS
+TOKEN: {
+  < PLUS: "+" >     
+  | < MINUS: "-" >  
+  | < TIMES: "*" >   
+  | < DIVIDE: "/" >  
+  | < MOD: "%" >    
+}
+
+// OPERADORES BOOLEANOS
+TOKEN: {
+  < AND: "&&" >   
+  | < OR: "||" >
+  | < NOT: "!" >
+}
+
+// OPERADORES DE ATRIBUIÇÃO
+TOKEN: {
+  < ASSIGN: "=" >      
+  | < ADD_ASSIGN: "+=" > 
+  | < SUB_ASSIGN: "-=" > 
+  | < MUL_ASSIGN: "*=" >
+  | < DIV_ASSIGN: "/=" > 
+  | < MOD_ASSIGN: "%=" >
+}
+
+// TOKENS PARA UM LAÇO FOR
+TOKEN: {
+  < FOR: "for" >
+  | < LPAREN: "(" >
+  | < RPAREN: ")" >
+  | < SEMICOLON: ";" >
+  | < COMMA: "," >
+}
+
+// TOKEN PARA O TIPO BÁSICO INTEIRO E REAL
+TOKEN: {
+  < NUMBER: (<DIGIT>)+ > 
+  | < REAL: (<DIGIT>)+ "." (<DIGIT>)+ >
+}
+
+// TOKEN PARA O TIPO BÁSICO STRING
+TOKEN: {
+  < STRING: "\"" (~["\""])* "\"" >
+  | < STRING_SINGLE: "'" (~["'"])* "'" > 
+}
+
+// LETRAS E NUMEROS
+TOKEN: {
+  < LETTER: ["a"-"z", "A"-"Z"] > |
+  < DIGIT: ["0"-"9"] > 
+}
+
+// DECLARAÇÃO DE FUNÇÕES
+TOKEN: {
+  < FUNCTION: "function" >
+  | < LBRACE: "{" >
+  | < RBRACE: "}" > 
+}
+
+// CHAMANDO FUNÇÕES
+TOKEN: {
+  < IDENTIFIER: <LETTER> (<LETTER> | <DIGIT>)* >
+}
+
+
+// IGNORA ESPAÇOS EM BRANCO
+SKIP: {
+  < WHITESPACE: [" ", "\t", "\n", "\r"] >
+}
+
+
+//=======================================================================
+//========================= REGRAS DE PRODUÇÕES =========================
+//=======================================================================
+
+// PRODUÇÃO PARA TIPOS BÁSICOS
+void BasicType() : {}
+{
+  <STRING> | <NUMBER> | <REAL>
+}
+
+// PRODUÇÃO PARA DECLARAÇÃO DE FUNÇÕES
+void FunctionDeclaration() : {}
+{
+  <FUNCTION> <IDENTIFIER> <LPAREN> [ ParameterList() ] <RPAREN> <LBRACE> StatementList() <RBRACE>
+}
+
+// PRODUÇÕES PARA CHAMAR FUNÇÕES
+void FunctionCall() : {}
+{
+  <IDENTIFIER> <LPAREN> [ ArgumentList() ] <RPAREN>
+}
+
+// PRODUÇÃO PARA LISTA DE PARÂMETROS (USADA EM FUNÇÕES)
+void ParameterList() : {}
+{
+  Parameter() ( <COMMA> Parameter() )*
+}
+
+void Parameter() : {}
+{
+  <IDENTIFIER> | BasicType()
+}
+
+// PRODUÇÕES PARA UMA LISTA DE ARGUMENTOS (USADA EM CHAMADAS DE FUNÇÕES)
+void ArgumentList() : {}
+{
+  Expression() ( <COMMA> Expression() )*
+}
+
+// PRODUÇÕES PARA EXPRESSÕES
+void Expression() : {}
+{
+  Term() ( ( <PLUS> | <MINUS> ) Term() )*
+}
+
+void Term() : {}
+{
+  Factor() ( ( <TIMES> | <DIVIDE> | <MOD> ) Factor() )*
+}
+
+// PRODUÇÕES PARA FATORES
+void Factor() : {}
+{
+  <NUMBER> 
+  | <REAL> 
+  | <STRING> 
+  | <LPAREN> Expression() <RPAREN> 
+  | LOOKAHEAD(2) <IDENTIFIER> <LPAREN> ArgumentList() <RPAREN>  // Para garantir que seja uma chamada de função
+  | <IDENTIFIER>  // Caso seja apenas um identificador simples
+}
+
+
+// PRODUÇÕES PARA ATRIBUIÇÕES
+void Assignment() : {}
+{
+  <IDENTIFIER> (
+    <ASSIGN> Expression()
+    | <ADD_ASSIGN> Expression()
+    | <SUB_ASSIGN> Expression()
+    | <MUL_ASSIGN> Expression()
+    | <DIV_ASSIGN> Expression()
+    | <MOD_ASSIGN> Expression()
+  )
+}
+
+// PRODUÇÕES PARA LAÇOS
+void ForLoop() : {}
+{
+  <FOR> <LPAREN> Assignment() <SEMICOLON> Expression() <SEMICOLON> Assignment() <RPAREN> <LBRACE> StatementList() <RBRACE>
+}
+
+// PRODUÇÕES PARA ESTRUTURAS CONDICIONAIS SIMPLES E COMPOSTAS
+void Conditional() : {}
+{
+  <IF> <LPAREN> Expression() <RPAREN> <LBRACE> StatementList() <RBRACE> 
+  ( <ELSE> <LBRACE> StatementList() <RBRACE> )?
+}
+
+// PRODUÇÕES PARA COMANDOS DE ENTRADA E SAÍDA
+void IOCommand() : {}
+{
+  (
+    <CONSOLE_LOG> <LPAREN> Expression() <RPAREN>
+    | <PROMPT> <LPAREN> <STRING> <RPAREN>
+    | <READLINE> <LPAREN> <STRING> <RPAREN>
+  )
+}
+
+// PRODUÇÕES PARA LISTAR COMANDOS (PARA AGRUPAMENTO DE INSTRUÇÕES EM BLOCOS)
+void StatementList() : {}
+{
+  ( Statement() )*
+}
+
+void Statement() : {}
+{
+  LOOKAHEAD(2) Assignment()
+  | LOOKAHEAD(3) FunctionDeclaration()
+  | FunctionCall()
+  | ForLoop()
+  | Conditional()
+  | IOCommand()
+}
