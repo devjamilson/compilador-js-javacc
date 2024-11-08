@@ -1,0 +1,83 @@
+// Lexico.jj - Exemplo de Analisador Léxico com JavaCC
+
+options {
+  JAVA_UNICODE_ESCAPE = true;  // Permite o uso de escape Unicode.
+}
+
+PARSER_BEGIN(Lexico)  // Nome da classe do analisador léxico
+
+public class Lexico {
+  public static void main(String[] args) throws ParseException {
+    String input = "int x = (10 + 20) - 5";  // Entrada de exemplo
+    Lexico lex = new Lexico(new java.io.StringReader(input));
+    Token t = lex.getNextToken();
+    while (t.kind != EOF) {
+      System.out.println("Token: " + t.image);
+      t = lex.getNextToken();
+    }
+  }
+}
+
+PARSER_END(Lexico)
+
+// Definições dos tokens
+
+TOKEN: {
+  < INT: "int" >
+}
+
+TOKEN: {
+  < IDENTIFIER: <LETTER> (<LETTER> | <DIGITO>)* >
+}
+
+TOKEN: {
+  < NUMBER: ["0"-"9"] >  // Token para números (inteiros)
+}
+
+TOKEN: {
+  < PLUS: "+" >
+}
+
+TOKEN: {
+  < MINUS: "-" >
+}
+
+TOKEN: {
+  < TIMES: "*" >
+}
+
+TOKEN: {
+  < DIVIDE: "/" >
+}
+
+TOKEN: {
+  < EQUAL: "=" >   // Token para o operador de atribuição '='
+}
+
+TOKEN: {
+  < SEMICOLON: ";" >
+}
+
+TOKEN: {
+  < LPAREN: "(" >
+}
+
+TOKEN: {
+  < RPAREN: ")" >
+}
+
+TOKEN: {
+  < WHITESPACE: [" ", "\t", "\n", "\r"] > // Ignora espaços em branco
+}
+
+TOKEN: {
+  < LETTER: ["a"-"z", "A"-"Z"] >
+}
+
+TOKEN: {
+  < DIGITO: ["0"-"9"] >
+}
+
+SKIP: {
+  < WHITESPACE >
+}
