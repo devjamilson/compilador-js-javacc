@@ -1,1 +1,5 @@
-int x = (10 + 20) - 5;
+function printNumbers() {
+  for (int i = 0; i < 5; i = i + 1) {
+    console.log(i);
+  }
+}

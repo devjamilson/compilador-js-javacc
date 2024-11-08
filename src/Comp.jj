@@ -4,20 +4,33 @@ options {
 
 PARSER_BEGIN(Comp)  // Nome da classe do analisador léxico
 
+import java.io.FileReader;
+import java.io.IOException;
+
 public class Comp {
-  public static void main(String[] args) throws ParseException {
-    String input = "int x = (10 + 20) - 5";  // Entrada de exemplo
-    Comp compiler = new Comp(new java.io.StringReader(input));
+  public static void main(String[] args) throws ParseException, IOException {
+    if (args.length < 1) {
+      System.err.println("Por favor, forneça o nome do arquivo de entrada.");
+      System.exit(1);
+    }
+
+    // O nome do arquivo de entrada será o primeiro argumento na linha de comando
+    String inputFileName = args[0];
+    FileReader fileReader = new FileReader(inputFileName);
+
+    Comp compiler = new Comp(fileReader);  // Leitura do arquivo
     Token t = compiler.getNextToken();
+    
     while (t.kind != EOF) {
       System.out.println("Token: " + t.image);
       t = compiler.getNextToken();
     }
+    
+    fileReader.close();  // Fecha o arquivo
   }
 }
 
-PARSER_END(Comp)
-
+PARSER_END(Comp) 
 
 //=======================================================================
 //================================ TOKENS ===============================
