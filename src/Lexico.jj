@@ -20,64 +20,38 @@ public class Lexico {
 
 PARSER_END(Lexico)
 
-// Definições dos tokens
-
+// ** Tokens básicos: letras e dígitos **
 TOKEN: {
-  < INT: "int" >
+  < LETTER: ["a"-"z", "A"-"Z"] >  // Letras
 }
 
 TOKEN: {
-  < IDENTIFIER: <LETTER> (<LETTER> | <DIGITO>)* >
+  < DIGIT: ["0"-"9"] >  // Dígitos
+}
+
+// ** Tokens de palavras-chave e operadores **
+TOKEN: {
+  < INT: "int" > |
+  < PLUS: "+" > |
+  < MINUS: "-" >|
+  < TIMES: "*" >|
+  < DIVIDE: "/"> |
+  < EQUAL: "="> |
+  < SEMICOLON: ";"> |
+  < LPAREN: "(" >|
+  < RPAREN: ")">
+}
+
+// ** Tokens compostos: identificadores e números **
+TOKEN: {
+  < IDENTIFIER: <LETTER> (<LETTER> | <DIGIT>)* >  // Identificadores (nomes de variáveis)
 }
 
 TOKEN: {
-  < NUMBER: ["0"-"9"] >  // Token para números (inteiros)
+  < NUMBER: (<DIGIT>)+ >  // Números inteiros
 }
 
-TOKEN: {
-  < PLUS: "+" >
-}
-
-TOKEN: {
-  < MINUS: "-" >
-}
-
-TOKEN: {
-  < TIMES: "*" >
-}
-
-TOKEN: {
-  < DIVIDE: "/" >
-}
-
-TOKEN: {
-  < EQUAL: "=" >   // Token para o operador de atribuição '='
-}
-
-TOKEN: {
-  < SEMICOLON: ";" >
-}
-
-TOKEN: {
-  < LPAREN: "(" >
-}
-
-TOKEN: {
-  < RPAREN: ")" >
-}
-
-TOKEN: {
-  < WHITESPACE: [" ", "\t", "\n", "\r"] > // Ignora espaços em branco
-}
-
-TOKEN: {
-  < LETTER: ["a"-"z", "A"-"Z"] >
-}
-
-TOKEN: {
-  < DIGITO: ["0"-"9"] >
-}
-
+// ** Ignorar espaços em branco **
 SKIP: {
-  < WHITESPACE >
+  < WHITESPACE: [" ", "\t", "\n", "\r"] >
 }
