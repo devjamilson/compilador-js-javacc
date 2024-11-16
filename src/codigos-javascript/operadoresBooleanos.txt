@@ -1,0 +1,20 @@
+function verificarIdadeEStatus(idade, estaTrabalhando) {
+  if (idade >= 18 && idade <= 60 && estaTrabalhando) {
+    console.log("Você está na faixa etária produtiva e está trabalhando.");
+  } 
+  else if ((idade < 18 || idade > 60) && !estaTrabalhando) {
+    console.log("Você está fora da faixa etária produtiva e não está trabalhando.");
+  } 
+  else if (idade >= 18 && idade <= 60 && !estaTrabalhando) {
+    console.log("Você está na faixa etária produtiva, mas não está trabalhando.");
+  } 
+  else {
+    console.log("Você está fora da faixa etária produtiva, mas está trabalhando.");
+  }
+
+}
+
+verificarIdadeEStatus(25, true); 
+verificarIdadeEStatus(17, false);
+verificarIdadeEStatus(30, false);
+verificarIdadeEStatus(65, true);  

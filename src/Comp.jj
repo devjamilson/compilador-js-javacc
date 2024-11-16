@@ -1,4 +1,4 @@
-options {
+options { 
   JAVA_UNICODE_ESCAPE = true;  // Permite o uso de escape Unicode.
 }
 
@@ -6,8 +6,12 @@ PARSER_BEGIN(Comp)  // Nome da classe do analisador léxico
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.LinkedList;
 
 public class Comp {
+  
   public static void main(String[] args) throws ParseException, IOException {
     if (args.length < 1) {
       System.err.println("Por favor, forneça o nome do arquivo de entrada.");
@@ -20,223 +24,316 @@ public class Comp {
 
     Comp compiler = new Comp(fileReader);  // Leitura do arquivo
     Token t = compiler.getNextToken();
-    
+
+    // Correção para usar List com tipo genérico
+    List<Token> jj_expentries = new ArrayList<Token>(); // Lista genérica de Tokens
+
     while (t.kind != EOF) {
       System.out.println("Token: " + t.image);
+      jj_expentries.add(t);  // Usando add com o tipo correto
       t = compiler.getNextToken();
     }
-    
+
     fileReader.close();  // Fecha o arquivo
   }
 }
 
-PARSER_END(Comp) 
+//=====================================================================================================
+//===========================================  TOKENS =================================================
+//=====================================================================================================
 
-//=======================================================================
-//================================ TOKENS ===============================
-//=======================================================================
-
-// PALAVRAS RESERVADAS
-TOKEN: { < CONSOLE_LOG: "console.log" > }
-TOKEN: { < IF: "if" > }
-TOKEN: { < ELSE: "else" > }
-TOKEN: { < PROMPT: "prompt" > }
-TOKEN: { < READLINE: "readline" > }
-
-// OPERADORES RELACIONAIS
-TOKEN: {
-  < EQ: "==" >     
-  | < EQ_STRICT: "===" >   
-  | < NEQ: "!=" >  
-  | < NEQ_STRICT: "!==">  
-  | < LT: "<" >     
-  | < GT: ">" >     
-  | < LE: "<=" >    
-  | < GE: ">=" >    
-}
-
-// OPERADORES ARITMETICOS
-TOKEN: {
-  < PLUS: "+" >     
-  | < MINUS: "-" >  
-  | < TIMES: "*" >   
-  | < DIVIDE: "/" >  
-  | < MOD: "%" >    
-}
-
-// OPERADORES BOOLEANOS
-TOKEN: {
-  < AND: "&&" >   
-  | < OR: "||" >
-  | < NOT: "!" >
+PARSER_END(Comp)
+// Espaços em branco
+SKIP : {
+  " " | "\r" | "\t" | "\n"
 }
 
 // OPERADORES DE ATRIBUIÇÃO
+TOKEN : {
+    <ATRIBUICAO: "=" >
+  | <MAIS_IGUAL: "+=" >
+  | <MENOS_IGUAL: "-=" >
+  | <ASTERISCO_IGUAL: "*=" >
+  | <BARRA_IGUAL: "/=" >
+  | <PORCENTO_IGUAL: "%=" >
+}
+
+// OPERADORES DE RELACIONAIS
+TOKEN : {
+    <IGUAL: "==" >
+  | <ESTRITAMENTE_IGUAL: "===" >
+  | <DIFERENTE: "!=" >
+  | <ESTRITAMENTE_DIFERENTE: "!==" >
+  | <MENOR: "<" >
+  | <MAIOR: ">" >
+  | <MENOR_IGUAL: "<=" >
+  | <MAIOR_IGUAL: ">=" >
+  | <NEGACAO: "!" >
+  | <DOIS_PONTOS: ":" >
+}
+
+// OPERADORES BOOLEANOS
+TOKEN : {
+    <OR: "||" >
+  | <AND: "&&" >
+}
+
+// OPERADORES INCREMENTO
+TOKEN : {
+    <INCREMENTO: "++" >
+  | <DECREMENTO: "--" >
+}
+
+
+//OPERADORES ARITMETICOS
+TOKEN : {
+    <MAIS: "+" >
+  | <MENOS: "-" >
+  | <ASTERISCO: "*" >
+  | <BARRA: "/" >
+  | <PORCENTO: "%" >
+}
+
+
+// DELIMITADORES
+TOKEN : {
+    <ABRE_PARENTESES: "(">
+  | <FECHA_PARENTESES: ")">
+  | <ABRE_CHAVE: "{">
+  | <FECHA_CHAVE: "}">
+  | <ABRE_COLCHETE: "[">
+  | <FECHA_COLCHETE: "]">
+  | <PONTO_VIRGULA: ";">
+  | <VIRGULA: ",">
+  | <PONTO: ".">
+}
+
+// PALAVRAS RESERVADAS
+TOKEN : {
+  
+  <VOID: "void">
+  | <RETURN: "return">
+  | <IF: "if">
+  | <ELSE: "else">
+  | <CONSOLE: "console">
+  | <LOG: "log">
+  | <PROMPT: "prompt">
+  | <WHILE: "while">
+  | <BREAK: "break">
+  | <CONTINUE: "continue">
+  | <FUNCTION: "function">
+  | <AWAIT: "await">
+  | <IMPORT: "import">
+  | <FROM: "from">
+}
+
+// TIPOS PRIMITIVOS E LITERAIS
+TOKEN : {
+    <STRING_LITERAL: "\"" (~["\"","\\"] | "\\" ["\"","\\","b","f","n","r","t"])* "\"" |
+                     "'" (~["'","\\"] | "\\" ["'","\\","b","f","n","r","t"])* "'">
+  | <NUMBER: (["0"-"9"])* "." (["0"-"9"])+ | (["0"-"9"])+ >
+  | <BIGINT: (["0"-"9"])+ "n">
+  | <UNDEFINED: "undefined">
+  | <NULL: "null">
+  | <TRUE: "true">
+  | <FALSE:"false">
+  | <SYMBOL: "Symbol" "(" (~["\"","\\"] | "\\" ["\"","\\","b","f","n","r","t"])* ")">
+}
+
+// DECLARAÇÃO DE VARIÁVEIS
+TOKEN : {
+    <LET: "let">
+  | <VAR: "var">
+  | <CONST: "const">
+}
+
 TOKEN: {
-  < ASSIGN: "=" >      
-  | < ADD_ASSIGN: "+=" > 
-  | < SUB_ASSIGN: "-=" > 
-  | < MUL_ASSIGN: "*=" >
-  | < DIV_ASSIGN: "/=" > 
-  | < MOD_ASSIGN: "%=" >
+    <IDENTIFIER:
+    (<LETRA> | <ESPECIAL> ) (<LETRA> | <DIGITO> | <ESPECIAL> )* >
+
+  | <#LETRA: (["a"-"z", "A"-"Z"])>
+  | <#DIGITO: ["0"-"9"]>
+  | <#ESPECIAL:(["_", "$", "ª", "º"])>
 }
 
-// TOKENS PARA UM LAÇO FOR
-TOKEN: {
-  < FOR: "for" >
-  | < LPAREN: "(" >
-  | < RPAREN: ")" >
-  | < SEMICOLON: ";" >
-  | < COMMA: "," >
+// CONSTANTES
+TOKEN : {
+    <CONSTANT : (<DIGIT>)+>
+  | <#DIGIT : ["0"-"9"]>
 }
 
-// TOKEN PARA O TIPO BÁSICO INTEIRO E REAL
-TOKEN: {
-  < NUMBER: (<DIGIT>)+ > 
-  | < REAL: (<DIGIT>)+ "." (<DIGIT>)+ >
+//=====================================================================================================
+//=====================================  REGRAS DE PRODUÇÃO ===========================================
+//=====================================================================================================
+
+
+void program() : {} {
+    consoleLog()
+    |  prompt()
+    | (LOOKAHEAD(2) functionCall() | LOOKAHEAD(2) chamadaPrePosIncremento()
+    | LOOKAHEAD(2) variableDeclaration() | expressao())
+    | conditional()
+    | whileRepeat()
+    | functionDeclaration()
+    | functionReturn()
+    | importDeclaration()
+
+
 }
 
-// TOKEN PARA O TIPO BÁSICO STRING
-TOKEN: {
-  < STRING: "\"" (~["\""])* "\"" >
-  | < STRING_SINGLE: "'" (~["'"])* "'" > 
+void consoleLog() : {} {
+    <CONSOLE> <PONTO> <LOG> <ABRE_PARENTESES> argumentList() <FECHA_PARENTESES>
 }
 
-// LETRAS E NUMEROS
-TOKEN: {
-  < LETTER: ["a"-"z", "A"-"Z"] > |
-  < DIGIT: ["0"-"9"] > 
+void prompt() : {} {
+   <PROMPT> <ABRE_PARENTESES> (value())? (<VIRGULA> value())? <FECHA_PARENTESES>
 }
 
-// DECLARAÇÃO DE FUNÇÕES
-TOKEN: {
-  < FUNCTION: "function" >
-  | < LBRACE: "{" >
-  | < RBRACE: "}" > 
+void argumentList() : {} {
+    (value() ( <VIRGULA> value() )*)?
 }
 
-// CHAMANDO FUNÇÕES
-TOKEN: {
-  < IDENTIFIER: <LETTER> (<LETTER> | <DIGIT>)* >
+void variableDeclaration() : {} {
+    ( <LET> | <VAR> | <CONST> )? <IDENTIFIER> assignment()  /*(<PONTO_VIRGULA>)?*/
+
 }
 
-
-// IGNORA ESPAÇOS EM BRANCO
-SKIP: {
-  < WHITESPACE: [" ", "\t", "\n", "\r"] >
+void assignment() : {} {
+  (<ATRIBUICAO> expressao()  )? (<VIRGULA> <IDENTIFIER> (<ATRIBUICAO> expressao())? )*
 }
 
+void expressao():{}{
+   avaliarTermoLogico() ( logisticOperator() avaliarTermoLogico() )*
+}
 
-//=======================================================================
-//========================= REGRAS DE PRODUÇÕES =========================
-//=======================================================================
+void complementoComparacao():{}{
+    [ (<MENOR>| <MAIOR> |<MENOR_IGUAL> |<MAIOR_IGUAL> |<IGUAL>|<DIFERENTE>|<ESTRITAMENTE_IGUAL> |<ESTRITAMENTE_DIFERENTE> ) criarItem() ]
+}
 
-// PRODUÇÃO PARA TIPOS BÁSICOS
-void BasicType() : {}
+void avaliarTermoLogico():{}{
+    criarItem()  complementoComparacao()
+}
+
+void criarItem():{} {
+   definirTermo() ((<MAIS>|<MENOS>) definirTermo() )*
+}
+
+void definirTermo():{} {
+    itemUnico() ((<ASTERISCO> |<BARRA> |<PORCENTO> ) itemUnico() )*
+}
+
+void itemUnico():{} {
+    [(<MAIS>|<MENOS>)] value()
+    | <ABRE_PARENTESES> expressao() <FECHA_PARENTESES>
+}
+
+void preIncrementoOuDecremento(): {} {
+     (<INCREMENTO> | <DECREMENTO>) <IDENTIFIER>
+}
+
+void posIncrementoOuDecremento(): {} {
+      <IDENTIFIER> (<INCREMENTO> | <DECREMENTO>)
+}
+
+void chamadaPrePosIncremento(): {} {
+    preIncrementoOuDecremento() | posIncrementoOuDecremento()
+}
+
+void functionDeclaration() : {} {
+    <FUNCTION> <IDENTIFIER> <ABRE_PARENTESES> [functionParameterList()] <FECHA_PARENTESES> <ABRE_CHAVE> (program())*  <FECHA_CHAVE>
+}
+
+void functionReturn() : {} {
+    <RETURN> ( LOOKAHEAD(2) consoleLog() | value())
+}
+
+void functionParameterList() : {} {
+     parameter() ( <VIRGULA> parameter() )*
+}
+
+void parameter() : {} {
+   <IDENTIFIER> ( <ATRIBUICAO> value())? /*| functionCall()*/
+}
+
+void functionArgumentsList() : {} {
+   <IDENTIFIER> ( <ATRIBUICAO> value() | <ABRE_PARENTESES>  [functionArgumentsList()] ( <VIRGULA> functionArgumentsList() )* <FECHA_PARENTESES>)?
+   | <NUMBER>
+   | <TRUE>
+   | <FALSE>
+   | <NULL>
+   | <UNDEFINED>
+   | <STRING_LITERAL>
+}
+
+void functionCall() : {} {
+    //<IDENTIFIER> <ABRE_PARENTESES> [ functionParameterList() ] <FECHA_PARENTESES> (<PONTO_VIRGULA>)?
+    <IDENTIFIER> <ABRE_PARENTESES>  [functionArgumentsList()] ( <VIRGULA> functionArgumentsList() )* <FECHA_PARENTESES> (<PONTO_VIRGULA>)?
+}
+
+void value() : {} {
+    <NUMBER>
+    | <TRUE>
+    | <FALSE>
+    | <NULL>
+    | <UNDEFINED>
+    | <STRING_LITERAL>
+    | <IDENTIFIER> //| <ABRE_PARENTESES> value() <FECHA_PARENTESES>
+}
+
+int one_line() : {} {
+    program()  { return 0; } | "end" { return 1; } | { return -1;}
+
+}
+
+void relationalOperator():{}{
+   [(<MAIOR> | <MAIOR_IGUAL> | <MENOR> |<MENOR_IGUAL> |<MENOS_IGUAL>| <IGUAL> | <DIFERENTE> |<ESTRITAMENTE_DIFERENTE>|<ESTRITAMENTE_IGUAL> )]  value()
+}
+
+void logisticOperator():{}{
+  <AND> | <OR>
+}
+
+void comparisonSimple():{}{
+     (<NEGACAO>)* value() (relationalOperator())?
+}
+
+void conditional() : {}
 {
-  <STRING> | <NUMBER> | <REAL>
+    ifStatement() (LOOKAHEAD(2) elseIfStatements())* [elseStatement()]
 }
 
-// PRODUÇÃO PARA DECLARAÇÃO DE FUNÇÕES
-void FunctionDeclaration() : {}
+void ifStatement() : {}
 {
-  <FUNCTION> <IDENTIFIER> <LPAREN> [ ParameterList() ] <RPAREN> <LBRACE> StatementList() <RBRACE>
+    <IF> <ABRE_PARENTESES> comparisonSimple() (logisticOperator() comparisonSimple() )* <FECHA_PARENTESES>
+    <ABRE_CHAVE> (program())* <FECHA_CHAVE>
 }
 
-// PRODUÇÕES PARA CHAMAR FUNÇÕES
-void FunctionCall() : {}
-{
-  <IDENTIFIER> <LPAREN> [ ArgumentList() ] <RPAREN>
+void elseIfStatements():{}{
+
+    <ELSE> <IF> <ABRE_PARENTESES> comparisonSimple() (logisticOperator() comparisonSimple() )* <FECHA_PARENTESES>
+     <ABRE_CHAVE> (program())*  <FECHA_CHAVE>
 }
 
-// PRODUÇÃO PARA LISTA DE PARÂMETROS (USADA EM FUNÇÕES)
-void ParameterList() : {}
-{
-  Parameter() ( <COMMA> Parameter() )*
-}
+void elseStatement():{}{
 
-void Parameter() : {}
-{
-  <IDENTIFIER> | BasicType()
-}
-
-// PRODUÇÕES PARA UMA LISTA DE ARGUMENTOS (USADA EM CHAMADAS DE FUNÇÕES)
-void ArgumentList() : {}
-{
-  Expression() ( <COMMA> Expression() )*
-}
-
-// PRODUÇÕES PARA EXPRESSÕES
-void Expression() : {}
-{
-  Term() ( ( <PLUS> | <MINUS> ) Term() )*
-}
-
-void Term() : {}
-{
-  Factor() ( ( <TIMES> | <DIVIDE> | <MOD> ) Factor() )*
-}
-
-// PRODUÇÕES PARA FATORES
-void Factor() : {}
-{
-  <NUMBER> 
-  | <REAL> 
-  | <STRING> 
-  | <LPAREN> Expression() <RPAREN> 
-  | LOOKAHEAD(2) <IDENTIFIER> <LPAREN> ArgumentList() <RPAREN>  // Para garantir que seja uma chamada de função
-  | <IDENTIFIER>  // Caso seja apenas um identificador simples
+    <ELSE> <ABRE_CHAVE> (program())* <FECHA_CHAVE>
 }
 
 
-// PRODUÇÕES PARA ATRIBUIÇÕES
-void Assignment() : {}
-{
-  <IDENTIFIER> (
-    <ASSIGN> Expression()
-    | <ADD_ASSIGN> Expression()
-    | <SUB_ASSIGN> Expression()
-    | <MUL_ASSIGN> Expression()
-    | <DIV_ASSIGN> Expression()
-    | <MOD_ASSIGN> Expression()
-  )
+void whileRepeat():{}{
+    <WHILE>  <ABRE_PARENTESES>  comparisonSimple() (logisticOperator() comparisonSimple() )*  <FECHA_PARENTESES>
+    <ABRE_CHAVE> (program())*  <FECHA_CHAVE>
 }
 
-// PRODUÇÕES PARA LAÇOS
-void ForLoop() : {}
-{
-  <FOR> <LPAREN> Assignment() <SEMICOLON> Expression() <SEMICOLON> Assignment() <RPAREN> <LBRACE> StatementList() <RBRACE>
+void importDeclaration():{} {
+   <IMPORT> importClause() <FROM> <STRING_LITERAL> (<PONTO_VIRGULA>)?
 }
 
-// PRODUÇÕES PARA ESTRUTURAS CONDICIONAIS SIMPLES E COMPOSTAS
-void Conditional() : {}
-{
-  <IF> <LPAREN> Expression() <RPAREN> <LBRACE> StatementList() <RBRACE> 
-  ( <ELSE> <LBRACE> StatementList() <RBRACE> )?
+void importClause():{}{
+    <IDENTIFIER>
+    | <ABRE_CHAVE> functionList() <FECHA_CHAVE>
 }
 
-// PRODUÇÕES PARA COMANDOS DE ENTRADA E SAÍDA
-void IOCommand() : {}
-{
-  (
-    <CONSOLE_LOG> <LPAREN> Expression() <RPAREN>
-    | <PROMPT> <LPAREN> <STRING> <RPAREN>
-    | <READLINE> <LPAREN> <STRING> <RPAREN>
-  )
-}
-
-// PRODUÇÕES PARA LISTAR COMANDOS (PARA AGRUPAMENTO DE INSTRUÇÕES EM BLOCOS)
-void StatementList() : {}
-{
-  ( Statement() )*
-}
-
-void Statement() : {}
-{
-  LOOKAHEAD(2) Assignment()
-  | LOOKAHEAD(3) FunctionDeclaration()
-  | FunctionCall()
-  | ForLoop()
-  | Conditional()
-  | IOCommand()
+void functionList():{} {
+    <IDENTIFIER> ( <VIRGULA> <IDENTIFIER> )*
 }
