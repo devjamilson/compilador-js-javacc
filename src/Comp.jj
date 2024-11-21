@@ -166,110 +166,130 @@ TOKEN : {
 //=====================================  REGRAS DE PRODUÇÃO ===========================================
 //=====================================================================================================
 
-
+// definem os elementos básicos e estruturais do código.
 void program() : {} {
-    consoleLog()
-    |  prompt()
-    | (LOOKAHEAD(2) functionCall() | LOOKAHEAD(2) chamadaPrePosIncremento()
-    | LOOKAHEAD(2) variableDeclaration() | expressao())
-    | conditional()
-    | whileRepeat()
-    | functionDeclaration()
-    | functionReturn()
-    | importDeclaration()
-
-
+    consoleLog() // Comando para imprimir valores no console.
+    | prompt() // Comando para receber entrada do usuário.
+    | (LOOKAHEAD(2) functionCall() // Chamada de função.
+    | LOOKAHEAD(2) chamadaPrePosIncremento() // Incrementos ou decrementos pré/pós-fixados.
+    | LOOKAHEAD(2) variableDeclaration() // Declaração de variáveis.
+    | expressao()) // Expressão lógica ou matemática.
+    | conditional() // Estruturas condicionais (if/else).
+    | whileRepeat() // Estruturas de repetição (while).
+    | functionDeclaration() // Declaração de funções.
+    | functionReturn() // Declaração de retorno de função.
+    | importDeclaration() // Declaração de importação de módulos.
 }
 
+// Comando console.log, usado para imprimir mensagens ou valores no console.
 void consoleLog() : {} {
     <CONSOLE> <PONTO> <LOG> <ABRE_PARENTESES> argumentList() <FECHA_PARENTESES>
 }
 
+// Comando prompt, usado para solicitar entradas do usuário.
 void prompt() : {} {
-   <PROMPT> <ABRE_PARENTESES> (value())? (<VIRGULA> value())? <FECHA_PARENTESES>
+    <PROMPT> <ABRE_PARENTESES> (value())? (<VIRGULA> value())? <FECHA_PARENTESES>
 }
 
+// Lista de argumentos para comandos ou funções.
 void argumentList() : {} {
-    (value() ( <VIRGULA> value() )*)?
+    (value() ( <VIRGULA> value() )*)? // Zero ou mais valores, separados por vírgula.
 }
 
+// Declaração de variáveis com ou sem valores iniciais.
 void variableDeclaration() : {} {
-    ( <LET> | <VAR> | <CONST> )? <IDENTIFIER> assignment()  /*(<PONTO_VIRGULA>)?*/
-
+    ( <LET> | <VAR> | <CONST> )? <IDENTIFIER> assignment() // Declara variáveis com let, var ou const.
 }
 
+// Atribuições de valores a variáveis, podendo ser múltiplas.
 void assignment() : {} {
   (<ATRIBUICAO> expressao()  )? (<VIRGULA> <IDENTIFIER> (<ATRIBUICAO> expressao())? )*
 }
 
+// Avaliação de expressões com operadores lógicos.
 void expressao():{}{
-   avaliarTermoLogico() ( logisticOperator() avaliarTermoLogico() )*
+   avaliarTermoLogico() ( logisticOperator() avaliarTermoLogico() )* // Combina termos lógicos com operadores.
 }
 
+// Complementos para expressões de comparação.
 void complementoComparacao():{}{
     [ (<MENOR>| <MAIOR> |<MENOR_IGUAL> |<MAIOR_IGUAL> |<IGUAL>|<DIFERENTE>|<ESTRITAMENTE_IGUAL> |<ESTRITAMENTE_DIFERENTE> ) criarItem() ]
 }
 
+// Avaliação de termos lógicos básicos.
 void avaliarTermoLogico():{}{
-    criarItem()  complementoComparacao()
+    criarItem()  complementoComparacao() // Combina itens com comparações.
 }
 
+// Criação de termos para cálculos aritméticos simples.
 void criarItem():{} {
-   definirTermo() ((<MAIS>|<MENOS>) definirTermo() )*
+   definirTermo() ((<MAIS>|<MENOS>) definirTermo() )* // Soma ou subtração de termos.
 }
 
+// Definição de termos com operadores de multiplicação, divisão ou módulo.
 void definirTermo():{} {
     itemUnico() ((<ASTERISCO> |<BARRA> |<PORCENTO> ) itemUnico() )*
 }
 
+// Representação de um item único: valor ou expressão entre parênteses.
 void itemUnico():{} {
-    [(<MAIS>|<MENOS>)] value()
-    | <ABRE_PARENTESES> expressao() <FECHA_PARENTESES>
+    [(<MAIS>|<MENOS>)] value() // Um valor com sinal opcional.
+    | <ABRE_PARENTESES> expressao() <FECHA_PARENTESES> // Expressão agrupada.
 }
 
+// Prefixos de incremento e decremento.
 void preIncrementoOuDecremento(): {} {
-     (<INCREMENTO> | <DECREMENTO>) <IDENTIFIER>
+     (<INCREMENTO> | <DECREMENTO>) <IDENTIFIER> // Exemplo: ++x ou --x.
 }
 
+// Sufixos de incremento e decremento.
 void posIncrementoOuDecremento(): {} {
-      <IDENTIFIER> (<INCREMENTO> | <DECREMENTO>)
+      <IDENTIFIER> (<INCREMENTO> | <DECREMENTO>) // Exemplo: x++ ou x--.
 }
 
+// Combinação de chamadas de incrementos pré e pós-fixados.
 void chamadaPrePosIncremento(): {} {
     preIncrementoOuDecremento() | posIncrementoOuDecremento()
 }
 
+// Declaração de funções.
 void functionDeclaration() : {} {
-    <FUNCTION> <IDENTIFIER> <ABRE_PARENTESES> [functionParameterList()] <FECHA_PARENTESES> <ABRE_CHAVE> (program())*  <FECHA_CHAVE>
+    <FUNCTION> <IDENTIFIER> <ABRE_PARENTESES> [functionParameterList()] <FECHA_PARENTESES> 
+    <ABRE_CHAVE> (program())*  <FECHA_CHAVE> // Corpo da função contendo um programa.
 }
 
+// Retorno de função com valores ou chamadas.
 void functionReturn() : {} {
     <RETURN> ( LOOKAHEAD(2) consoleLog() | value())
 }
 
+// Lista de parâmetros da função.
 void functionParameterList() : {} {
-     parameter() ( <VIRGULA> parameter() )*
+     parameter() ( <VIRGULA> parameter() )* // Zero ou mais parâmetros.
 }
 
+// Parâmetro individual, podendo ter valor padrão.
 void parameter() : {} {
-   <IDENTIFIER> ( <ATRIBUICAO> value())? /*| functionCall()*/
+   <IDENTIFIER> ( <ATRIBUICAO> value())?
 }
 
+// Lista de argumentos passados para chamadas de funções.
 void functionArgumentsList() : {} {
    <IDENTIFIER> ( <ATRIBUICAO> value() | <ABRE_PARENTESES>  [functionArgumentsList()] ( <VIRGULA> functionArgumentsList() )* <FECHA_PARENTESES>)?
-   | <NUMBER>
-   | <TRUE>
-   | <FALSE>
-   | <NULL>
-   | <UNDEFINED>
-   | <STRING_LITERAL>
+   | <NUMBER> // Números.
+   | <TRUE> // Boolean true.
+   | <FALSE> // Boolean false.
+   | <NULL> // Valor null.
+   | <UNDEFINED> // Valor undefined.
+   | <STRING_LITERAL> // Cadeia de caracteres.
 }
 
+// Chamada de funções com argumentos. ? - elemento opcional
 void functionCall() : {} {
-    //<IDENTIFIER> <ABRE_PARENTESES> [ functionParameterList() ] <FECHA_PARENTESES> (<PONTO_VIRGULA>)?
-    <IDENTIFIER> <ABRE_PARENTESES>  [functionArgumentsList()] ( <VIRGULA> functionArgumentsList() )* <FECHA_PARENTESES> (<PONTO_VIRGULA>)?
+    <IDENTIFIER> <ABRE_PARENTESES>  (  functionArgumentsList() <VIRGULA> )* <FECHA_PARENTESES> (<PONTO_VIRGULA>)?
 }
 
+// Valores primitivos ou identificadores.
 void value() : {} {
     <NUMBER>
     | <TRUE>
@@ -277,63 +297,66 @@ void value() : {} {
     | <NULL>
     | <UNDEFINED>
     | <STRING_LITERAL>
-    | <IDENTIFIER> //| <ABRE_PARENTESES> value() <FECHA_PARENTESES>
+    | <IDENTIFIER>
 }
 
-int one_line() : {} {
-    program()  { return 0; } | "end" { return 1; } | { return -1;}
-
-}
-
+// Operadores relacionais para comparação.
 void relationalOperator():{}{
    [(<MAIOR> | <MAIOR_IGUAL> | <MENOR> |<MENOR_IGUAL> |<MENOS_IGUAL>| <IGUAL> | <DIFERENTE> |<ESTRITAMENTE_DIFERENTE>|<ESTRITAMENTE_IGUAL> )]  value()
 }
 
+// Operadores lógicos.
 void logisticOperator():{}{
   <AND> | <OR>
 }
 
+// Comparação simples com operadores relacionais e negação.
 void comparisonSimple():{}{
      (<NEGACAO>)* value() (relationalOperator())?
 }
 
+// Estrutura condicional (if/else).
 void conditional() : {}
 {
     ifStatement() (LOOKAHEAD(2) elseIfStatements())* [elseStatement()]
 }
 
+// Bloco if com condição e corpo.
 void ifStatement() : {}
 {
     <IF> <ABRE_PARENTESES> comparisonSimple() (logisticOperator() comparisonSimple() )* <FECHA_PARENTESES>
     <ABRE_CHAVE> (program())* <FECHA_CHAVE>
 }
 
+// Blocos adicionais de else if.
 void elseIfStatements():{}{
-
     <ELSE> <IF> <ABRE_PARENTESES> comparisonSimple() (logisticOperator() comparisonSimple() )* <FECHA_PARENTESES>
      <ABRE_CHAVE> (program())*  <FECHA_CHAVE>
 }
 
+// Bloco else final.
 void elseStatement():{}{
-
     <ELSE> <ABRE_CHAVE> (program())* <FECHA_CHAVE>
 }
 
-
+// Estrutura de repetição while.
 void whileRepeat():{}{
     <WHILE>  <ABRE_PARENTESES>  comparisonSimple() (logisticOperator() comparisonSimple() )*  <FECHA_PARENTESES>
     <ABRE_CHAVE> (program())*  <FECHA_CHAVE>
 }
 
+// Declaração de importação de módulos externos.
 void importDeclaration():{} {
    <IMPORT> importClause() <FROM> <STRING_LITERAL> (<PONTO_VIRGULA>)?
 }
 
+// Identificadores ou objetos importados.
 void importClause():{}{
     <IDENTIFIER>
     | <ABRE_CHAVE> functionList() <FECHA_CHAVE>
 }
 
+// Lista de funções ou identificadores importados.
 void functionList():{} {
     <IDENTIFIER> ( <VIRGULA> <IDENTIFIER> )*
 }
